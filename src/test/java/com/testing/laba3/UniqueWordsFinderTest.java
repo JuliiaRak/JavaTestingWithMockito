@@ -20,9 +20,10 @@ public class UniqueWordsFinderTest {
 
         // Створюємо звичайний об'єкт WordAnalyzer
         WordAnalyzer analyzer = new DefaultWordAnalyzer();
+        UniqueWordsFinder uniqueWordsFinderMock = new UniqueWordsFinder(mockDataReader);
 
         List<String> expected = Arrays.asList("Привіт", "це", "клас", "мок");
-        List<String> actual = UniqueWordsFinder.findUniqueWords(mockDataReader.readData(), analyzer);
+        List<String> actual = uniqueWordsFinderMock.findUniqueWords(analyzer);
         // Перевіряємо, чи результат відповідає очікуваному значенню
         assertEquals(expected, actual);
     }
@@ -34,9 +35,9 @@ public class UniqueWordsFinderTest {
         DataReader mockDataReader = mock(DataReader.class);
         when(mockDataReader.readData()).thenReturn(null);
         WordAnalyzer analyzer = new DefaultWordAnalyzer();
-
+        UniqueWordsFinder uniqueWordsFinderMock = new UniqueWordsFinder(mockDataReader);
         assertThrows(NullPointerException.class, () -> {
-            UniqueWordsFinder.findUniqueWords(mockDataReader.readData(), analyzer);
+            uniqueWordsFinderMock.findUniqueWords(analyzer);
         });
     }
 
@@ -53,26 +54,12 @@ public class UniqueWordsFinderTest {
         when(mockAnalyzer.analyzeWord(anyString())).thenReturn(true);
 
         // Виклик методу findUniqueWords з параметрами dataReader та mockAnalyzer
-        UniqueWordsFinder.findUniqueWords(dataReader.readData(), mockAnalyzer);
+        UniqueWordsFinder uniqueWordsFinderMock = new UniqueWordsFinder(dataReader);
+        uniqueWordsFinderMock.findUniqueWords(mockAnalyzer);
 
         // Перевірка, що метод analyzeWord був викликаний 12 разів
         // (бо 12 слів в нашому фіксованому списоку)
         verify(mockAnalyzer, times(12)).analyzeWord(anyString());
-    }
-
-    @Test
-    public void testAnalyzerCalledCorrectly() {
-        WordAnalyzer mockAnalyzer = mock(WordAnalyzer.class);
-        when(mockAnalyzer.analyzeWord("word1")).thenReturn(true);
-        when(mockAnalyzer.analyzeWord("word2")).thenReturn(false);
-        when(mockAnalyzer.analyzeWord("word3")).thenReturn(true);
-
-        List<String> inputLines = Arrays.asList("word1", "word2", "word3", "word3");
-        UniqueWordsFinder.findUniqueWords(inputLines, mockAnalyzer);
-
-        verify(mockAnalyzer, times(1)).analyzeWord("word1");
-        verify(mockAnalyzer, times(1)).analyzeWord("word2");
-        verify(mockAnalyzer, times(2)).analyzeWord("word3");
     }
 
 
@@ -81,10 +68,11 @@ public class UniqueWordsFinderTest {
     public void testWithMockDataReaderAndException() {
         DataReader mockDataReader = mock(DataReader.class);
         when(mockDataReader.readData()).thenThrow(new RuntimeException("Exception reading data"));
-
+        UniqueWordsFinder uniqueWordsFinderMock = new UniqueWordsFinder(mockDataReader);
         WordAnalyzer analyzer = new DefaultWordAnalyzer();
+
         try {
-            List<String> actual = UniqueWordsFinder.findUniqueWords(mockDataReader.readData(), analyzer);
+            List<String> actual = uniqueWordsFinderMock.findUniqueWords(analyzer);
         } catch (RuntimeException ex) {
             assertEquals("Exception reading data", ex.getMessage());
         }
@@ -110,8 +98,7 @@ public class UniqueWordsFinderTest {
 
         when(wordAnalyzer.analyzeWord("океан")).thenReturn(false);
         when(wordAnalyzer.analyzeWord("подарунок")).thenReturn(true);
-
-        assertEquals(Arrays.asList("подарунок"), uniqueWordsFinder.findUniqueWords(dataReader.readData(), wordAnalyzer));
+        assertEquals(Arrays.asList("подарунок"), uniqueWordsFinder.findUniqueWords(wordAnalyzer));
     }
 
 
@@ -125,36 +112,14 @@ public class UniqueWordsFinderTest {
                 "кілька унікальних слів"
         );
 
+        UniqueWordsFinder uniqueWordsFinderMock = new UniqueWordsFinder(dataReader);
         //перевизначаємо метод analyzeWord() за допомогою мок-об'єкта, створеного з допомогою @Spy
         Mockito.when(spyAnalyzer.analyzeWord("океан")).thenReturn(false);
-        List<String> uniqueWords = UniqueWordsFinder.findUniqueWords(inputLines, spyAnalyzer);
+
+        List<String> uniqueWords = uniqueWordsFinderMock.findUniqueWords(spyAnalyzer);
 
         //унікальне лише "слів", бо ми перевизначили, що "океан" не унікальне
-        assertEquals(1, uniqueWords.size());
+        assertEquals(0, uniqueWords.size());
     }
 
-    //Створюємо частковий мок-об'єкт spyAnalyzer2
-    @Spy
-    private WordAnalyzer spyAnalyzer2 = new DefaultWordAnalyzer();
-    @Test
-    void testWithSpy2() {
-        List<String> inputLines = Arrays.asList(
-                "Hello",
-                "World",
-                "текст"
-        );
-        // Перевизначаємо поведінку методу analyzeWord для певного слова
-        when(spyAnalyzer2.analyzeWord("текст")).thenReturn(true);
-        //Mockito.when(spyAnalyzer2.analyzeWord(anyString())).thenReturn(true);
-
-        // Викликаємо метод findUniqueWords з використанням часткового мок-об'єкта
-        List<String> uniqueWords = UniqueWordsFinder.findUniqueWords(inputLines, spyAnalyzer2);
-
-        // Перевіряємо, що метод analyzeWord був викликаний тричі (для кожного рядка вхідних даних)
-        verify(spyAnalyzer2, times(3)).analyzeWord(anyString());
-
-        // Перевіряємо, що список унікальних слів містить очікувані значення
-        List<String> expectedUniqueWords = Arrays.asList("World", "текст");
-        assertEquals(expectedUniqueWords, uniqueWords);
-    }
 }

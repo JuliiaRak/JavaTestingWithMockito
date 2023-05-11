@@ -8,7 +8,8 @@ public class SysProg3 {
         List<String> inputLines = dataReader.readData();
 
         WordAnalyzer analyzer = new DefaultWordAnalyzer();
-        List<String> uniqueWords = UniqueWordsFinder.findUniqueWords(inputLines, analyzer);
+        UniqueWordsFinder uniqueWordsFinder = new UniqueWordsFinder(dataReader);
+        List<String> uniqueWords = uniqueWordsFinder.findUniqueWords(analyzer);
 
         for (String word : uniqueWords) {
             System.out.println(word);

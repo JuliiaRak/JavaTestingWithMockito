@@ -1,11 +1,20 @@
 package com.testing.laba3;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class UniqueWordsFinder {
-    public static List<String> findUniqueWords(List<String> lines, WordAnalyzer analyzer) {
+
+    private DataReader dataReader;
+
+    public UniqueWordsFinder(DataReader dataReader) {
+        this.dataReader = dataReader;
+    }
+
+    public List<String> findUniqueWords(WordAnalyzer analyzer) {
+        List<String> lines = dataReader.readData();
         ArrayList<String> words = new ArrayList<>();
 
         for (String nextLine : lines) {
